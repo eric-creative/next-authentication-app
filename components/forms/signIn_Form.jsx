@@ -1,14 +1,19 @@
 'use client'
-import {signInAction} from "@/actions/auth/account_actions";
+
 import {Button} from "@/components/ui/button";
 import Link from "next/link";
+import {signInAction} from "@/actions/authActions";
+import {toast} from "sonner";
 
 export function SignIn_Form() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
-        await signInAction(formData);
+        const error = await signInAction(formData);
+        if (error) {
+            toast.error(error)
+        }
     }
 
     return (
@@ -59,7 +64,7 @@ export function SignIn_Form() {
 
                         <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-300">
                             Don't have an account?
-                            <Link href="/" className="font-medium text-[#4285f4]"> Sign up</Link>
+                            <Link href="/register" className="font-medium text-[#4285f4]"> Register now</Link>
                         </div>
                     </div>
                 </div>
