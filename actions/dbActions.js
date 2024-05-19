@@ -44,15 +44,17 @@ export async function getUser({ credentials }) {
         if (!user) {
             return null;
         }
-        await bcrypt.compare(password, user.password, function(err, res) {
-            if (err) {
-                return null;
-            } else if (res) {
-                return user;
-            } else {
-                return 'passwords do not match';
-            }
-        })
+        // await bcrypt.compare(password, user.password, function(err, res) {
+        //     if (err) {
+        //         return null;
+        //     } else if (res) {
+        //         return user;
+        //     } else {
+        //         return 'passwords do not match';
+        //     }
+        // })
+
+        return user;
     } catch (error) {
         throw error
     }
