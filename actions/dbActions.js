@@ -1,12 +1,12 @@
 'use server'
 
-import {NextResponse} from "next/server";
-import {connectMongoDB} from "@/lib/mongodb";
+import { connectMongoDB } from "@/lib/mongodb";
 import User from "@/models/user";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs"
 
 
-export async function createUser({ username, email, hashedPass}) {
+export async function createUser({ username, email, password}) {
+    const hashedPass = await bcrypt.hash(password, 10);
     try {
         await connectMongoDB();
         const response = await  User.create({ username, email, password: hashedPass})
@@ -28,33 +28,31 @@ export async function checkUser({ email }) {
     try {
         await connectMongoDB();
         const existingUser = await  User.findOne({email}).select('_id');
-        return NextResponse.json({ success: existingUser });
+        return { success: existingUser };
 
     } catch (error) {
         console.log(error)
     }
 }
 
-export async function getUser({ credentials }) {
-    console.log(credentials)
-    const { email, password } = credentials;
+export async function getUser({ formData }) {
+    const email = formData.get('email');
+    const password = formData.get('password');
+
     try {
         await connectMongoDB();
         const user = await  User.findOne({email});
         if (!user) {
-            return null;
+            return { error: 'Invalid email or password' };
+        } else {
+            const match = await bcrypt.compare(password, user.password);
+            if (match) {
+                console.log({ email, password });
+                return { success: match };
+            } else {
+                return { error: 'Invalid email or password' };
+            }
         }
-        // await bcrypt.compare(password, user.password, function(err, res) {
-        //     if (err) {
-        //         return null;
-        //     } else if (res) {
-        //         return user;
-        //     } else {
-        //         return 'passwords do not match';
-        //     }
-        // })
-
-        return user;
     } catch (error) {
         throw error
     }

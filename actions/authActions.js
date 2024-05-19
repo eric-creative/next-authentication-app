@@ -5,7 +5,7 @@ import {signIn, signOut} from "@/auth";
 export async function signInAction(formData) {
     try {
         if (!formData) {
-            return 'No formData';
+            return 'Invalid email or password';
         } else {
             await signIn("credentials", {
                 email: formData.get("email"),
@@ -15,7 +15,7 @@ export async function signInAction(formData) {
         }
     } catch (error) {
         if (error.type === "CredentialsSignin") {
-            return "Invalid Credentials"
+            return "Invalid email or password";
         }
         throw error
     }

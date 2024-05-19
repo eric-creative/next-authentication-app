@@ -7,11 +7,12 @@ import { useRouter } from "next/navigation";
 import { useState} from "react";
 import { toast } from "sonner"
 import Loader from "@/components/Loader";
+import {checkUser, createUser} from "@/actions/dbActions";
+import {validateUserInput} from "@/lib/validate";
 
 export function SignUp_Form() {
 
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState('')
 
     const router = useRouter();
 
@@ -19,43 +20,55 @@ export function SignUp_Form() {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
         setLoading(true);
-        try {
-            const response = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    username: formData.get('username'),
-                    email: formData.get('email'),
-                    password: formData.get('password'),
-                    verifyPassword: formData.get('verifyPassword'),
-                })
-            });
+        const username = formData.get('username');
+        const email = formData.get('email');
+        const password = formData.get('password');
+        const verifyPassword = formData.get('verifyPassword');
 
-            const res = await response.json();
-
-            if (res.error) {
-                setLoading(false);
-                toast.error(res.error, {
-                    theme: "colored"
-                })
-            } else if (res.success) {
-                setLoading(false);
-                toast.success(res.success, {
-                    theme: "colored"
-                });
-                router.push('/signIn')
+        if (!username || !email || !password || !verifyPassword) {
+            setLoading(false);
+            toast.error('All the fields are required');
+        } else {
+            const validData = validateUserInput({username, email, password, verifyPassword})
+            if (validData !== 'valid') {
+                toast.error(validData)
+                setLoading(false)
+            } else {
+                try {
+                    const existingUser = await checkUser({ email });
+                    if (existingUser.success) {
+                        setLoading(false);
+                        toast.error('Email already exist');
+                    } else {
+                        try {
+                            const res = await createUser({username, email, password});
+                            if (res.error) {
+                                setLoading(false);
+                                toast.error(res.error, {
+                                    theme: "colored"
+                                })
+                            } else if (res.success) {
+                                setLoading(false);
+                                toast.success(res.success, {
+                                    theme: "colored"
+                                });
+                                router.push('/signIn')
+                            }
+                        } catch (error) {
+                            setLoading(false)
+                            toast.error(error, {
+                                theme: "colored"
+                            })
+                        }
+                    }
+                } catch (error) {
+                    setLoading(false);
+                    toast.error('Something went wrong');
+                    throw error;
+                }
             }
-
-        } catch (e) {
-            setLoading(false)
-            toast.error('Error during registration', {
-                theme: "colored"
-            })
         }
     }
-
     return (
         <div className={`overflow-y-auto tracking-wider overflow-x-hidden fixed top-0 right-0 left-0 z-50 h-full items-center justify-center flex `}>
             <div className="relative p-4 w-full max-w-md h-full md:h-auto">

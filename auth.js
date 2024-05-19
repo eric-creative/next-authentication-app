@@ -11,7 +11,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 password: {},
             },
             authorize: async (credentials) => {
-                console.log(credentials)
                 try {
                     return await getUser({credentials})
                 } catch (e) {

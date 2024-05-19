@@ -4,15 +4,33 @@ import {Button} from "@/components/ui/button";
 import Link from "next/link";
 import {signInAction} from "@/actions/authActions";
 import {toast} from "sonner";
+import {getUser} from "@/actions/dbActions";
+import {useState} from "react";
+import Loader from "@/components/Loader";
 
 export function SignIn_Form() {
 
+    const [loadng, setLoadng] = useState(false)
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoadng(true)
         const formData = new FormData(e.currentTarget);
-        const error = await signInAction(formData);
-        if (error) {
-            toast.error(error)
+        try {
+            const user = await  getUser({formData});
+            if (user.success) {
+                const error = await signInAction(formData);
+                if (error) {
+                    setLoadng(false)
+                    toast.error(error)
+                }
+            } else {
+                setLoadng(false)
+                toast.error(user.error)
+            }
+        } catch (error) {
+            setLoadng(false)
+            throw error
         }
     }
 
@@ -57,7 +75,7 @@ export function SignIn_Form() {
                             <Button
                                 className='w-full mt-5 dark:text-gray-300 bg-transparent text-gray-400'
                                 variant="outline">
-                                Continue
+                                { loadng ? <Loader className={` !h-4 !w-4`} /> : 'Continue' }
                             </Button>
 
                         </form>
