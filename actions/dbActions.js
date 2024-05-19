@@ -34,26 +34,3 @@ export async function checkUser({ email }) {
         console.log(error)
     }
 }
-
-export async function getUser({ formData }) {
-    const email = formData.get('email');
-    const password = formData.get('password');
-
-    try {
-        await connectMongoDB();
-        const user = await  User.findOne({email});
-        if (!user) {
-            return { error: 'Invalid email or password' };
-        } else {
-            const match = await bcrypt.compare(password, user.password);
-            if (match) {
-                console.log({ email, password });
-                return { success: match };
-            } else {
-                return { error: 'Invalid email or password' };
-            }
-        }
-    } catch (error) {
-        throw error
-    }
-}

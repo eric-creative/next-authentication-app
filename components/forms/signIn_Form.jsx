@@ -15,18 +15,13 @@ export function SignIn_Form() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoadng(true)
+
         const formData = new FormData(e.currentTarget);
         try {
-            const user = await  getUser({formData});
-            if (user.success) {
-                const error = await signInAction(formData);
-                if (error) {
-                    setLoadng(false)
-                    toast.error(error)
-                }
-            } else {
+            const error = await signInAction(formData);
+            if (error) {
                 setLoadng(false)
-                toast.error(user.error)
+                toast.error(error)
             }
         } catch (error) {
             setLoadng(false)
